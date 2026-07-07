@@ -1,6 +1,6 @@
-/* RPGym design system — STYLE VARIANT: "Royal Tome". Deep navy-indigo
-   background, rich gold accent, regal illuminated-manuscript display font.
-   Same tokens/structure as the original — only the values changed, so all
+/* RPGym design system — STYLE VARIANT: "Royal Tome". Deep royal-blue/violet
+   background, warm gold accent, ornate decorative display font. Same
+   tokens/structure as the original — only the values changed, so all
    layout and functionality stays identical. */
 
 @import url("https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
@@ -38,25 +38,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  /* No overscroll-behavior override here on purpose: paginate.js only
-     preventDefaults vertical drags that are its own page-nav gestures,
-     and deliberately leaves alone a downward pull from the first page so
-     the browser's native pull-to-refresh still works (small pull =
-     rubber-band back, hard pull = real refresh). Disabling overscroll at
-     the CSS level would block that refresh outright regardless of what
-     the JS decides, which is the opposite of what we want. */
 }
 
-/* One-screen-per-page app-like experience, modeled directly on the
-   reference (nitais-brand-vault.base44.app): the page is NOT scrolled
-   natively at all. #pager is a fixed 100vh viewport with overflow
-   hidden; #pager-track holds every .page stacked normally and is moved
-   with `transform: translateY()` by js/paginate.js. Each wheel/keyboard/
-   touch gesture (or dot click) shifts the track by exactly one page.
-   This was a deliberate rebuild away from native scroll + scroll-snap,
-   which felt "fluent"/continuous no matter how it was tuned — moving
-   the interaction fully into JS + transform gives the crisp, discrete
-   "page skip" feel that native scroll physics couldn't. */
 #pager {
   position: relative;
   height: 100vh;
@@ -88,7 +71,6 @@ body {
   overflow-y: auto;
 }
 
-/* Right-hand click-to-jump dot navigation, matching the reference. */
 #pager-dots {
   position: fixed;
   right: 1.25rem;
@@ -120,8 +102,6 @@ body {
   background: var(--ember);
 }
 
-/* On shorter screens, tighten things up so a whole page still fits
-   without needing its own internal scroll. */
 @media (max-height: 760px) {
   .page {
     padding-top: 3.75rem;
@@ -137,8 +117,6 @@ body {
   }
 }
 
-/* Fade + rise reveal for content inside each panel, triggered by
-   js/scroll-effects.js as sections enter the viewport. */
 [data-animate] {
   opacity: 0;
   transform: translateY(28px);
@@ -199,7 +177,6 @@ a {
   max-width: 50rem;
 }
 
-/* ---------- nav ---------- */
 .nav {
   display: flex;
   align-items: center;
@@ -264,7 +241,6 @@ a {
   }
 }
 
-/* ---------- buttons ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -335,7 +311,6 @@ a {
   cursor: not-allowed;
 }
 
-/* ---------- badge ---------- */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -369,7 +344,6 @@ a {
   50% { opacity: 0.4; }
 }
 
-/* ---------- hero ---------- */
 .hero {
   display: grid;
   gap: 2.5rem;
@@ -425,7 +399,6 @@ a {
   width: fit-content;
 }
 
-/* ---------- placeholder blocks ---------- */
 .placeholder {
   position: relative;
   overflow: hidden;
@@ -497,11 +470,6 @@ a {
   aspect-ratio: auto;
 }
 
-/* ---------- sections ---------- */
-/* Note: vertical spacing for .page sections is fully controlled by
-   .page itself (see #pager rules above) so every page stays exactly
-   one viewport tall — no generic section padding here to stack with it. */
-
 .eyebrow {
   margin-bottom: 0.5rem;
   font-size: 0.75rem;
@@ -535,7 +503,6 @@ a {
   max-width: 40rem;
 }
 
-/* mission */
 .mission {
   text-align: center;
 }
@@ -560,11 +527,6 @@ a {
   color: var(--muted-foreground);
 }
 
-/* Card rows: a fixed-column-count grid rather than a wrapping one.
-   Since each .page must fit exactly one viewport height (see #pager
-   above), letting cards wrap into extra rows would make the page
-   taller than the screen. Columns just get narrower instead of
-   wrapping, so the page height never changes with window width. */
 .grid-row {
   display: grid;
   gap: 1rem;
@@ -576,25 +538,16 @@ a {
 
 .grid-row-3 {
   grid-template-columns: repeat(3, 1fr);
-  max-width: 50rem;
+  max-width: 62rem;
   margin: 0 auto;
   align-items: stretch;
 }
 
 .grid-row-3 .card {
   height: 100%;
-  /* Without this, CSS Grid's default min-width:auto lets unwrappable
-     content (the nowrap card-stats line) set a hard floor on that
-     column's width, so a longer stat line (Rogue's) silently makes its
-     column wider than the other two even though the track is 1fr. */
   min-width: 0;
 }
 
-/* Fixed (not min-) heights for every row above the body copy, so the
-   body's start position lines up pixel-for-pixel across all 3 cards no
-   matter how many lines the body text itself wraps to. Class names are
-   always a single word here, so a smaller fixed title-row height (vs.
-   the how-section's 2-line allowance) is safe. */
 .grid-row-3 .card-title-row {
   height: 1.75rem;
   min-height: 0;
@@ -608,23 +561,15 @@ a {
   margin-bottom: 0.6rem;
 }
 
-/* The placeholder's aspect-ratio only holds as a *preference* — if the
-   "[ X Portrait ]" label text needs more room than that ratio implies
-   at a given card width, the box was quietly growing taller than the
-   other two cards (this was the actual cause of the misalignment, not
-   the rows below it). A fixed height removes any content dependency. */
 .grid-row-3 .placeholder {
   aspect-ratio: auto;
-  height: 10rem;
+  height: 11rem;
 }
 
-/* Below a certain width, a wrapping/stacked grid would make a card
-   page taller than one screen (the pager treats each page as exactly
-   one viewport). Instead, each row becomes a single-row horizontal
-   swipe carousel — one card's worth of height, any number of cards
-   wide — so every page still fits one mobile screen without needing
-   internal scroll (which is unreachable anyway: the pager's touch
-   handler treats any vertical drag as a page-change gesture). */
+.grid-row-3 .card {
+  padding: 1.15rem;
+}
+
 @media (max-width: 700px) {
   .grid-row-5,
   .grid-row-3 {
@@ -649,12 +594,6 @@ a {
     overflow-y: visible;
   }
 
-  /* Hero: on mobile the copy and art stack into two grid rows: by
-     default CSS grid stretches auto rows to fill a tall container,
-     which shoved the (now much smaller) hero art way down the page
-     with a big empty gap. Centering the row group instead keeps it
-     compact, and shrinking the art itself is what lets hero copy +
-     art fit in one screen instead of needing internal scroll. */
   .hero {
     gap: 1.25rem;
     align-content: center;
@@ -692,11 +631,6 @@ a {
     margin-bottom: 1rem;
   }
 
-  /* The dot nav is sized for desktop's roomier right margin; at mobile
-     widths the active dot's 1.5rem height reads as a fat bar sitting
-     right on top of card/button content near the edge. Shrinking both
-     the dots and their active-state size keeps the nav usable as a
-     progress indicator without stealing visual weight from the page. */
   #pager-dots {
     right: 0.6rem;
     gap: 0.35rem;
@@ -791,7 +725,6 @@ a {
   overflow: hidden;
 }
 
-/* banner */
 .banner {
   border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
   border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
@@ -829,7 +762,6 @@ a {
   .banner p { font-size: 1rem; }
 }
 
-/* status strip */
 .status-strip {
   border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
   border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
@@ -852,7 +784,6 @@ a {
   color: var(--muted-foreground);
 }
 
-/* signup */
 .signup-box {
   border-radius: 0.75rem;
   border: 1px solid var(--border);
@@ -959,5 +890,142 @@ a {
 
 .hidden { display: none !important; }
 
-/* condensed trailing line on the signup page — replaces the separate
-   status-strip + 
+.page-foot {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  row-gap: 0.35rem;
+  column-gap: 0.6rem;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.page-foot-status {
+  white-space: normal;
+}
+
+.page-foot a {
+  color: var(--ember);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.page-foot #foot-year {
+  white-space: nowrap;
+}
+
+.badge-dot-inline {
+  display: inline-block;
+  height: 0.375rem;
+  width: 0.375rem;
+  margin-right: 0.4rem;
+  border-radius: 999px;
+  background: var(--ember);
+  vertical-align: middle;
+}
+
+footer {
+  border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  background: color-mix(in oklab, var(--background) 80%, black);
+}
+
+footer .wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 640px) {
+  footer .wrap { flex-direction: row; }
+}
+
+footer .foot-brand {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+}
+
+footer .foot-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+footer a:hover {
+  color: var(--ember);
+}
+
+.privacy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.back-link {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--muted-foreground);
+}
+
+.back-link:hover {
+  color: var(--ember);
+}
+
+.privacy-main h1 {
+  font-size: 2.5rem;
+}
+
+.privacy-updated {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.privacy-body {
+  margin-top: 2rem;
+}
+
+.privacy-section {
+  margin-bottom: 2rem;
+}
+
+.privacy-section h2 {
+  font-size: 1.25rem;
+}
+
+.privacy-section p,
+.privacy-section li {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--muted-foreground);
+}
+
+.privacy-section p {
+  margin-top: 0.75rem;
+}
+
+.privacy-section ul {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.privacy-section a {
+  color: var(--ember);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

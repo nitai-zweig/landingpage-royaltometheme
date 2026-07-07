@@ -563,11 +563,15 @@ a {
 
 .grid-row-3 .placeholder {
   aspect-ratio: auto;
-  height: 11rem;
+  height: 9rem;
 }
 
 .grid-row-3 .card {
-  padding: 1.15rem;
+  padding: 0.85rem;
+}
+
+#classes .section-head {
+  margin-top: 0.4rem;
 }
 
 @media (max-width: 700px) {

@@ -3,6 +3,18 @@
  * (nitais-brand-vault.base44.app), which does NOT use native document
  * scrolling at all: #pager is a fixed 100vh viewport with the content
  * track shifted by `transform: translateY()`.
+ *
+ * Earlier attempts kept native scrolling and tried to control its feel
+ * (CSS scroll-snap, then a JS layer on top of scrollTo). Both still
+ * rode on the browser's own scroll physics and felt like continuous
+ * scrolling no matter how they were tuned. Moving the interaction fully
+ * into transform + JS state removes that physics entirely: every
+ * gesture is a discrete, fully-controlled jump to the next page.
+ *
+ * Every .page is exactly one viewport tall (enforced in CSS), so there
+ * is no "taller than the viewport" case to special-case anymore — the
+ * card-grid pages were redesigned as horizontal scrollers specifically
+ * so they too are always exactly one page tall.
  */
 (function () {
   var track = document.getElementById("pager-track");
@@ -21,6 +33,7 @@
   var unlockTimer = null;
   var vh = window.innerHeight;
 
+  // Build the dot navigation.
   var dots = pages.map(function (_, i) {
     var dot = document.createElement("button");
     dot.type = "button";
@@ -52,13 +65,32 @@
     applyTransform();
     updateDots();
     clearTimeout(unlockTimer);
+    // Cooldown after a jump: transition itself is 800ms (see CSS) plus a
+    // longer buffer here specifically to swallow trackpad inertia — a
+    // single physical flick keeps emitting wheel events for a while
+    // after your finger leaves the pad, and without this buffer that
+    // tail was being read as a second, unintended gesture ("jumps
+    // twice"). This is the main knob for "controlled" vs. twitchy.
     var duration = prefersReducedMotion ? 0 : 1150;
     unlockTimer = setTimeout(function () {
       isAnimating = false;
     }, duration);
   }
 
-  var WHEEL_THRESHOLD = 90;
+  // Wheel/trackpad input arrives as a burst of many small events, not
+  // one clean tick. Rather than requiring any single event to cross a
+  // threshold (which either fires on the lightest touch, or ignores a
+  // real-but-gentle scroll depending on how it's tuned — the "sticky"
+  // complaint), accumulate deltaY across the burst and trigger once the
+  // running total crosses the threshold. The accumulator resets after
+  // any pause between events, so unrelated later scrolls don't inherit
+  // leftover total from a previous gesture.
+  // Bumped up from 55, then again from 90: even at 90 a single moderate
+  // wheel/trackpad flick was still enough to blow through the threshold
+  // and jump a page, which still read as too aggressive/violent on
+  // desktop. This requires a clearly deliberate scroll before committing
+  // to a page jump.
+  var WHEEL_THRESHOLD = 160;
   var WHEEL_GESTURE_GAP_MS = 160;
   var wheelAccum = 0;
   var lastWheelAt = 0;
@@ -95,9 +127,36 @@
     }
   }
 
+  // A downward drag at the top of the page is the same physical gesture
+  // as native pull-to-refresh (finger drags the content down from the
+  // very top) AND our own "go to previous page" gesture. Earlier this
+  // suppressed native refresh entirely for every vertical drag, which
+  // fixed the "can't scroll up" bug but also killed pull-to-refresh
+  // completely. What we actually want is for the two to coexist the way
+  // a normal page does: a light pull does nothing disruptive, a hard
+  // sustained pull refreshes.
+  //
+  // Fighting the browser mid-gesture doesn't work reliably — once a
+  // touchmove has been preventDefault'd, browsers stop honoring native
+  // overscroll for the rest of that same touch sequence even if a later
+  // event isn't prevented. So the decision has to be made once, right
+  // when the gesture direction locks in, not adjusted based on distance
+  // as the drag continues.
+  //
+  // The gesture is only genuinely ambiguous with refresh when we're
+  // already on the first page and dragging downward — that's the only
+  // place a pull can reach the top with nowhere left for our own paging
+  // to go. In that one case we never call preventDefault at all and let
+  // the browser own the whole gesture: a small pull just rubber-bands
+  // back (our page-nav would have been a no-op here anyway, since
+  // goTo(current - 1) already clamps at 0), and a hard pull triggers a
+  // real refresh, exactly like any other page. Every other vertical drag
+  // (mid-pager, or dragging upward from the first page) keeps using our
+  // own preventDefault + paging, since there's no legitimate native
+  // scroll there for the browser to fight us over.
   var touchStartX = null;
   var touchStartY = null;
-  var touchDirection = null;
+  var touchDirection = null; // 'vertical' | 'horizontal' | null
   var pageAtTouchStart = 0;
   var isPullToRefreshGesture = false;
 
@@ -145,7 +204,7 @@
     )
       return;
     var dy = startY - e.changedTouches[0].clientY;
-    if (Math.abs(dy) < 60) return;
+    if (Math.abs(dy) < 60) return; // ignore small taps/drags
     if (dy > 0) goTo(current + 1);
     else goTo(current - 1);
   }
@@ -160,6 +219,8 @@
     applyTransform();
   });
 
+  // Route in-page nav links (Get Updates -> #signup, How it works ->
+  // #how) through the same page jump instead of an instant native jump.
   document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     a.addEventListener("click", function (e) {
       var id = a.getAttribute("href").slice(1);
